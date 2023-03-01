@@ -18,7 +18,53 @@ async function addUser(email: string, passwordHash: string): Promise<User> {
 }
 
 async function getUserByEmail(email: string): Promise<User | null> {
-  return await userRepository.findOne({ where: { email } });
+  const user = await userRepository.findOne({ where: { email } });
+  return user;
 }
 
-export { addUser, getUserByEmail };
+async function getUserById(userId: string): Promise<User[] | null> {
+  const user = await userRepository
+    .createQueryBuilder('user')
+    .where({ where: { userId }})
+    .select([
+      'user.email', 'user.profileViews',
+      'user.joinedOn', 'user.userId'
+    ])
+    .getMany();
+
+  return user;
+}
+
+async function getUsersByViews(minViews: number): Promise<User[]> {
+  const viralUsers = await userRepository
+    .createQueryBuilder('user')
+    .where('profileViews >= :minViews', { minViews })
+    .select([
+        'user.verifiedEmail'
+      ])
+    .getMany();
+  return viralUsers;
+}
+
+async function getAllUsers(): Promise<User[]> {
+  // We use no criteria so this will get all users
+  return await userRepository.find();
+}
+
+async function getAllUnverifiedUsers(): Promise<User[]> {
+  return userRepository.find({
+    select: { email: true, userId: true },
+    where: { verifiedEmail: false },
+  });
+}
+
+async function getViralUsers(): Promise<User[]> {
+  const viralUsers = await userRepository
+    .createQueryBuilder('user')
+    .where('profileViews >= :viralAmount', { viralAmount: 1000 })
+    .select(['user.email', 'user.profileViews'])
+    .getMany();
+  return viralUsers;
+}
+
+export { addUser, getUserByEmail, getUserById, getUsersByViews, getAllUsers, getAllUnverifiedUsers, getViralUsers };
