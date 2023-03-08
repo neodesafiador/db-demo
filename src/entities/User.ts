@@ -1,4 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  Entity, PrimaryGeneratedColumn, Column, OneToOne, 
+  JoinColumn, Relation, OneToMany,
+} from "typeorm"
+import { AvatarPhoto } from './AvatarPhoto';
+import { Review } from './Review';
 
 @Entity()
 export class User {
@@ -16,4 +21,16 @@ export class User {
 
   @Column({ default: 0 })
   profileViews: number;
+
+  // @Column({ default: 0 })
+  // updateEmail: string;
+
+  @OneToOne(() => AvatarPhoto, (avatarPhoto) => avatarPhoto.user)
+
+  @JoinColumn()
+  avatarPhoto: Relation<AvatarPhoto>;
+
+  @OneToMany(() => Review, (review) => review.user)
+  reviews: Relation<Review>[];
+
 }

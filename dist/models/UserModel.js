@@ -55,5 +55,30 @@ async function getViralUsers() {
         .getMany();
     return viralUsers;
 }
-export { addUser, getUserByEmail, getUserById, getUsersByViews, getAllUsers, getAllUnverifiedUsers, getViralUsers };
+async function resetAllProfileViews() {
+    await userRepository
+        .createQueryBuilder()
+        .update(User)
+        .set({ profileViews: 0 })
+        .where('unverified <> true')
+        .execute();
+}
+async function incrementProfileViews(userData) {
+    const updatedUser = userData;
+    updatedUser.profileViews += 1;
+    await userRepository
+        .createQueryBuilder()
+        .update(User)
+        .set({ profileViews: updatedUser.profileViews })
+        .where({ userId: updatedUser.userId })
+        .execute();
+    return updatedUser;
+}
+async function updateEmailAddress(userId, newEmail) {
+    // TODO: Implement me!
+}
+// test getUsersByViews() function
+const users = await getUsersByViews(250);
+console.log(users);
+export { addUser, getUserByEmail, getUserById, getUsersByViews, getAllUsers, getAllUnverifiedUsers, getViralUsers, resetAllProfileViews, incrementProfileViews, updateEmailAddress };
 //# sourceMappingURL=UserModel.js.map
