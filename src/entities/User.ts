@@ -10,6 +10,12 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   userId: string;
 
+  @Column()
+  firstName: string;
+
+  @Column()
+  lastName: string;
+
   @Column({ unique: true })
   email: string;
 
@@ -22,15 +28,10 @@ export class User {
   @Column({ default: 0 })
   profileViews: number;
 
-  // @Column({ default: 0 })
-  // updateEmail: string;
-
-  @OneToOne(() => AvatarPhoto, (avatarPhoto) => avatarPhoto.user)
-
+  @OneToOne(() => AvatarPhoto, (avatarPhoto) => avatarPhoto.user, { cascade: ['insert', 'update'] })
   @JoinColumn()
   avatarPhoto: Relation<AvatarPhoto>;
 
-  @OneToMany(() => Review, (review) => review.user)
+  @OneToMany(() => Review, (review) => review.user, { cascade: ['insert', 'update'] })
   reviews: Relation<Review>[];
-
 }

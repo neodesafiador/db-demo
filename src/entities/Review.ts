@@ -14,9 +14,9 @@ export class Review {
   @Column()
   reviewText: string;
 
-  @ManyToOne(() => User, (user) => user.reviews)
+  @ManyToOne(() => User, (user) => user.reviews, { cascade: ['insert', 'update'] })
   user: Relation<User>;
 
-  @ManyToOne(() => Book, (book) => book.reviews)
+  @ManyToOne(() => Book, (book) => book.reviews, { cascade: ['insert', 'update'] })
   book: Relation<Book>;
 }

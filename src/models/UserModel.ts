@@ -3,20 +3,11 @@ import { User } from '../entities/User';
 
 const userRepository = AppDataSource.getRepository(User);
 
-async function allUserData(): Promise<User[]> {
-  // if (process.env.NODE_ENV == 'dev') {
-  //   const allUsers = await userRepository.find();
-
-  //   return allUsers;
-  // }
-  const allUsers = await userRepository.find();
-
-  return allUsers;
-} // getting back all of the data. makesure to take out the data for the project.
-
-async function addUser(email: string, passwordHash: string): Promise<User> {
+async function addUser(firstName: string, lastName: string, email: string, passwordHash: string): Promise<User> {
   // Create the new user object
   let newUser = new User();
+  newUser.firstName = firstName;
+  newUser.lastName = lastName;
   newUser.email = email;
   newUser.passwordHash = passwordHash;
 
@@ -28,86 +19,58 @@ async function addUser(email: string, passwordHash: string): Promise<User> {
   return newUser;
 }
 
-async function getAllUsers(): Promise<User[]> {
+async function getUserByEmail(email: string): Promise<User | null> {
+  return await userRepository.findOne({ where: { email } });
+}
+
+async function allUserData(): Promise<User[]> {
   return await userRepository.find();
 }
 
-async function getAllUnverifiedUsers(): Promise<User[]> {
-  return userRepository.find({
-    select: { email: true, userId: true },
-    where: { verifiedEmail: false },
-  });
-}
-
-async function getUserByEmail(email: string): Promise<User | null> {
-  const user = await userRepository.findOne({ where: { email } });
-
-  return user;
-}
-
 async function getUserById(userId: string): Promise<User | null> {
-  if (!userId) {
-    return null;
-  }
   const user = await userRepository
     .createQueryBuilder('user')
     .where({ userId })
-    .select(['user.email', 'user.profileViews', 'user.joined0n', 'user.userId'])
+    .leftJoinAndSelect('user.reviews', 'reviews')
     .getOne();
+
   return user;
 }
 
-async function getViralUsers(): Promise<User[]> {
-  const viralUsers = await userRepository
-    .createQueryBuilder('user')
-    .where('profileViews >= :viralAmount', { viralAmount: 1000 })
-    .select(['user.email', 'user.profileViews', 'user.userId'])
-    .getMany();
-
-  return viralUsers;
-} // User[] : returning array of the user.
-
-// async function getUsersByViews(minViews: number): Promise<User[]> {
-//   const users = await userRepository
-//     .createQueryBuilder('user')
-//     .where('profileViews >= :viralAmount', { minViews })
-//     .select(['user.email', 'user.userId', 'user.joinedOn', 'user.profileViews'])
-//     .getMany();
-
-//   return users;
-// }
 async function getUsersByViews(minViews: number): Promise<User[]> {
   const users = await userRepository
     .createQueryBuilder('user')
-    .where('profileViews >= :minViews', { minViews })
-    .select(['user.verifiedemail'])
-    .getMany(); // getting multiple user account
+    .where('profileViews >= :minViews', { minViews }) // NOTES: the parameter `:minViews` must match the key name `minViews`
+    .select(['user.email', 'user.profileViews', 'user.joinedOn', 'user.userId'])
+    .getMany();
 
   return users;
 }
 
-// async function resetAllUnverifiedProfileViews(): Promise<void> {
-//   await userRepository
-//     .createQueryBuilder()
-//     .update(User)
-//     .set({ profileViews: 0 })
-//     .where('unverified <> true')
-//     .execute();
-// }
-
 async function incrementProfileViews(userData: User): Promise<User> {
   const updatedUser = userData;
   updatedUser.profileViews += 1;
+
   await userRepository
     .createQueryBuilder()
     .update(User)
     .set({ profileViews: updatedUser.profileViews })
     .where({ userId: updatedUser.userId })
     .execute();
+
   return updatedUser;
 }
 
-async function updatedEmailAddress(userId: string, newEmail: string): Promise<void> {
+async function resetAllProfileViews(): Promise<void> {
+  await userRepository
+    .createQueryBuilder()
+    .update(User)
+    .set({ profileViews: 0 })
+    .where('verifiedEmail <> true')
+    .execute();
+}
+
+async function updateEmailAddress(userId: string, newEmail: string): Promise<void> {
   await userRepository
     .createQueryBuilder()
     .update(User)
@@ -116,15 +79,28 @@ async function updatedEmailAddress(userId: string, newEmail: string): Promise<vo
     .execute();
 }
 
+TODO: Using Session
+async function updateName(user: User, firstName: string, lastName: string): Promise<User> {
+  // Update the user's first/last name
+  const updatedUser = user;
+
+  await userRepository
+    .createQueryBuilder()
+    .update(User)
+    .set({ firstName: firstName, lastName: lastName })
+    .where({ updatedUser.userId })
+    .execute();
+  
+  return updatedUser;
+}
+
 export {
-  allUserData,
   addUser,
   getUserByEmail,
   getUserById,
-  getAllUsers,
-  getAllUnverifiedUsers,
-  getViralUsers,
   getUsersByViews,
   incrementProfileViews,
-  updatedEmailAddress,
+  allUserData,
+  resetAllProfileViews,
+  updateEmailAddress,
 };

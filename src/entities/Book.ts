@@ -16,9 +16,9 @@ export class Book {
     publishedYear: number;
 
     @Column({ default: false })
-    verifiedBook: boolean;
+    isPublicDomain: boolean;
 
-    @OneToMany(() => Review, (review) => review.user)
+    @OneToMany(() => Review, (review) => review.book, { cascade: ['insert', 'update'] })
     reviews: Relation<Review>[];
 
     @ManyToMany(() => Author, (artist) => artist.books, { cascade: ['insert', 'update'] })

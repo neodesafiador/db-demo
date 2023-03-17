@@ -4,15 +4,6 @@ type DatabaseConstraintError = {
   message?: string;
 };
 
-type AuthRequest = {
-  email: string;
-  password: string;
-};
-
-type UserIdParam = {
-  userId: string;
-};
-
 type NewEmailBody = {
   email: string;
 };
