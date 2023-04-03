@@ -12,8 +12,8 @@ async function addUser(firstName: string, lastName: string, email: string, passw
   newUser.passwordHash = passwordHash;
 
   // Then save it to the database
-  // NOTES: We reassign to `newUser` so we can access
-  // NOTES: the fields the database autogenerates (the id & default columns)
+  // We reassign to `newUser` so we can access
+  // the fields the database autogenerates (the id & default columns)
   newUser = await userRepository.save(newUser);
 
   return newUser;
@@ -32,6 +32,7 @@ async function getUserById(userId: string): Promise<User | null> {
     .createQueryBuilder('user')
     .where({ userId })
     .leftJoinAndSelect('user.reviews', 'reviews')
+    .where('user.userId = :userId', { userId })
     .getOne();
 
   return user;
@@ -40,7 +41,7 @@ async function getUserById(userId: string): Promise<User | null> {
 async function getUsersByViews(minViews: number): Promise<User[]> {
   const users = await userRepository
     .createQueryBuilder('user')
-    .where('profileViews >= :minViews', { minViews }) // NOTES: the parameter `:minViews` must match the key name `minViews`
+    .where('profileViews >= :minViews', { minViews }) // the parameter `:minViews` must match the key name `minViews`
     .select(['user.email', 'user.profileViews', 'user.joinedOn', 'user.userId'])
     .getMany();
 
@@ -77,21 +78,6 @@ async function updateEmailAddress(userId: string, newEmail: string): Promise<voi
     .set({ email: newEmail })
     .where({ userId })
     .execute();
-}
-
-TODO: Using Session
-async function updateName(user: User, firstName: string, lastName: string): Promise<User> {
-  // Update the user's first/last name
-  const updatedUser = user;
-
-  await userRepository
-    .createQueryBuilder()
-    .update(User)
-    .set({ firstName: firstName, lastName: lastName })
-    .where({ updatedUser.userId })
-    .execute();
-  
-  return updatedUser;
 }
 
 export {
