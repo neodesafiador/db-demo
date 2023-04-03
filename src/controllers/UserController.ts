@@ -11,7 +11,7 @@ import {
   updateEmailAddress,
 } from '../models/UserModel';
 import { parseDatabaseError } from '../utils/db-utils';
-import { sendEmail } from '../services/emailServices';
+import { sendEmail } from '../services/emailService';
 
 async function getAllUserProfiles(req: Request, res: Response): Promise<void> {
   res.json(await allUserData());
