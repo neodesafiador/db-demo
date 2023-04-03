@@ -12,7 +12,7 @@ export class Book {
     @Column({ unique: true })
     title: string;
 
-    @Column()
+    @Column({ nullable: true })
     publishedYear: number;
 
     @Column({ default: false })
