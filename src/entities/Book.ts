@@ -1,27 +1,24 @@
-import {
-    Entity, PrimaryGeneratedColumn, Column, Relation, OneToMany, ManyToMany, JoinTable
-  } from "typeorm"
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, Relation, ManyToMany } from 'typeorm';
 import { Review } from './Review';
-import { Author } from './Author';
+import { User } from './User';
 
 @Entity()
 export class Book {
-    @PrimaryGeneratedColumn('uuid')
-    bookId: string;
+  @PrimaryGeneratedColumn('uuid')
+  bookId: string;
 
-    @Column({ unique: true })
-    title: string;
+  @Column()
+  title: string;
 
-    @Column({ nullable: true })
-    publishedYear: number;
+  @Column({ nullable: true })
+  publicationYear: number;
 
-    @Column({ default: false })
-    isPublicDomain: boolean;
+  @Column({ default: false })
+  inPublicDomain: boolean;
 
-    @OneToMany(() => Review, (review) => review.book, { cascade: ['insert', 'update'] })
-    reviews: Relation<Review>[];
+  @OneToMany(() => Review, (review) => review.book, { cascade: ['insert', 'update'] })
+  reviews: Relation<Review>[];
 
-    @ManyToMany(() => Author, (artist) => artist.books, { cascade: ['insert', 'update'] })
-    @JoinTable()
-    authors: Relation<Author>[];
+  @ManyToMany(() => User, (user) => user.books, { cascade: ['insert', 'update'] })
+  users: Relation<User>[];
 }
