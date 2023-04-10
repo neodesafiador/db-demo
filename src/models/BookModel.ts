@@ -3,11 +3,12 @@ import { Book } from '../entities/Book';
 
 const bookRepository = AppDataSource.getRepository(Book);
 
-async function addBook(title: string, publicationYear: number | undefined): Promise<Book> {
+async function addBook(title: string, publicationYear: number | undefined, inPublicDomain: boolean): Promise<Book> {
   // Create the new Book object
   let newBook = new Book();
   newBook.title = title;
-  newBook.publishedYear = publicationYear;
+  newBook.publicationYear = publicationYear;
+  newBook.inPublicDomain = inPublicDomain;
 
   newBook = await bookRepository.save(newBook);
 
