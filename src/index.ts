@@ -21,6 +21,7 @@ import {
 import { insertBook, getAllBooks, getBook } from './controllers/BookController';
 
 const app: Express = express();
+app.set('view engine', 'ejs');
 const { PORT, COOKIE_SECRET } = process.env;
 
 const SQLiteStore = connectSqlite3(session);
@@ -47,7 +48,7 @@ app.post('/api/login', logIn); // Log in to an account
 app.post('/api/users/profileViews/reset', resetProfileViews); // Log in to an account
 
 app.get('/api/users', getAllUserProfiles);
-app.get('/api/users/:targetUserId', getUserProfileData);
+app.get('/users/:targetUserId', getUserProfileData);
 app.post('/api/users/:targetUserId/email', updateUserEmail);
 app.get('/api/users/:targetUserId/reviews', getUserReviews);
 
@@ -55,8 +56,8 @@ app.post('/api/books/:bookId/reviews', makeReview);
 app.get('/api/reviews/:reviewId', getReview);
 app.delete('/api/reviews/:reviewId', deleteUserReview);
 
-app.get('/api/books/:bookId', getBook);
-app.get('/api/books', getAllBooks);
+app.get('/books/:bookId', getBook);
+app.get('/books', getAllBooks);
 app.post('/api/books', insertBook);
 
 app.listen(PORT, () => {
