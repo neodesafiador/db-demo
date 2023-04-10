@@ -1,5 +1,5 @@
 type NewBookRequest = {
-    title: string;
-    publishedYear: number | undefined;
-  };
-  
+  title: string;
+  publicationYear: number | undefined;
+  inPublicDomain: string;
+};
