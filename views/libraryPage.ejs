@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Library | Decent Reads</title>
+</head>
+
+<body>
+    <h1>Library</h1>
+
+    <% if (books.length === 1) { %>
+    <h2>There is <%= books.length %> book in the library.</h2>
+    <% } else { %>
+    <h2>There are <%= books.length %> books in the library.</h2>
+    <% } %>
+
+    <a href="/addBook">Add a new book</a>
+
+    <ul>
+        <% for( const book of books ) { %>
+        <a href="/books/<%= book.bookId %>">
+            <li class="book">
+                <h3 class="bookTitle"><%= book.title %></h3>
+                <section class='bookInfo'>
+                    <p>Publication date: <%= book.publicationYear ?? 'Unknown' %></p>
+                    <p>Is in public domain: <%= book.inPublicDomain %></p>
+                </section>
+            </li>
+        </a>
+        <% } %>
+    </ul>
+</body>
+</html>
