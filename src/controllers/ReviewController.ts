@@ -27,7 +27,8 @@ async function makeReview(req: Request, res: Response): Promise<void> {
   const { bookId } = req.params as { bookId: string };
   const { authenticatedUser, isLoggedIn } = req.session;
   if (!isLoggedIn) {
-    res.sendStatus(401);
+    // res.sendStatus(401);
+    res.redirect('/login');
     return;
   }
   const { reviewText, rating } = req.body as { reviewText: string; rating: number };
@@ -49,7 +50,7 @@ async function makeReview(req: Request, res: Response): Promise<void> {
   const review = await addReview(rating, reviewText, book, user);
   review.user = undefined;
 
-  res.status(201).json(review);
+  res.redirect(`/books/${bookId}`);
 }
 
 async function getUserReviews(req: Request, res: Response): Promise<void> {
@@ -84,4 +85,11 @@ async function deleteUserReview(req: Request, res: Response): Promise<void> {
   res.sendStatus(204); // 204 No Content
 }
 
-export { makeReview, getReview, getUserReviews, deleteUserReview };
+async function renderReviewPage(req: Request, res: Response): Promise<void> {
+  const { bookId } = req.params as BookIdParam;
+  const book = await getBookById(bookId);
+
+  res.render('reviewPage', { book });
+}
+
+export { makeReview, getReview, getUserReviews, deleteUserReview, renderReviewPage };
