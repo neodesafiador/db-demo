@@ -13,55 +13,26 @@ async function addUser(email, passwordHash) {
     return newUser;
 }
 async function getUserByEmail(email) {
-    const user = await userRepository.findOne({ where: { email } });
-    return user;
+    return await userRepository.findOne({ where: { email } });
+}
+async function allUserData() {
+    return await userRepository.find();
 }
 async function getUserById(userId) {
     const user = await userRepository
         .createQueryBuilder('user')
-        .where({ userId })
-        .select([
-        'user.email', 'user.profileViews',
-        'user.joinedOn', 'user.userId'
-    ])
+        .leftJoinAndSelect('user.reviews', 'reviews')
+        .where('user.userId = :userId', { userId })
         .getOne();
     return user;
 }
 async function getUsersByViews(minViews) {
-    const viralUsers = await userRepository
+    const users = await userRepository
         .createQueryBuilder('user')
-        .where('profileViews >= :minViews', { minViews })
-        .select([
-        'user.verifiedEmail'
-    ])
+        .where('profileViews >= :minViews', { minViews }) // NOTES: the parameter `:minViews` must match the key name `minViews`
+        .select(['user.email', 'user.profileViews', 'user.userId'])
         .getMany();
-    return viralUsers;
-}
-async function getAllUsers() {
-    // We use no criteria so this will get all users
-    return await userRepository.find();
-}
-async function getAllUnverifiedUsers() {
-    return userRepository.find({
-        select: { email: true, userId: true },
-        where: { verifiedEmail: false },
-    });
-}
-async function getViralUsers() {
-    const viralUsers = await userRepository
-        .createQueryBuilder('user')
-        .where('profileViews >= :viralAmount', { viralAmount: 1000 })
-        .select(['user.email', 'user.profileViews'])
-        .getMany();
-    return viralUsers;
-}
-async function resetAllProfileViews() {
-    await userRepository
-        .createQueryBuilder()
-        .update(User)
-        .set({ profileViews: 0 })
-        .where('unverified <> true')
-        .execute();
+    return users;
 }
 async function incrementProfileViews(userData) {
     const updatedUser = userData;
@@ -74,11 +45,21 @@ async function incrementProfileViews(userData) {
         .execute();
     return updatedUser;
 }
-async function updateEmailAddress(userId, newEmail) {
-    // TODO: Implement me!
+async function resetAllProfileViews() {
+    await userRepository
+        .createQueryBuilder()
+        .update(User)
+        .set({ profileViews: 0 })
+        .where('verifiedEmail <> true')
+        .execute();
 }
-// test getUsersByViews() function
-const users = await getUsersByViews(250);
-console.log(users);
-export { addUser, getUserByEmail, getUserById, getUsersByViews, getAllUsers, getAllUnverifiedUsers, getViralUsers, resetAllProfileViews, incrementProfileViews, updateEmailAddress };
+async function updateEmailAddress(userId, newEmail) {
+    await userRepository
+        .createQueryBuilder()
+        .update(User)
+        .set({ email: newEmail })
+        .where({ userId })
+        .execute();
+}
+export { addUser, getUserByEmail, getUserById, getUsersByViews, incrementProfileViews, allUserData, resetAllProfileViews, updateEmailAddress, };
 //# sourceMappingURL=UserModel.js.map

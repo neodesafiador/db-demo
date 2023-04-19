@@ -7,49 +7,43 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { Entity, PrimaryGeneratedColumn, JoinTable, ManyToMany, Column, OneToMany, } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToMany } from 'typeorm';
 import { Review } from './Review';
-import { Book } from './Book';
-let User = class User {
-    userId;
-    email;
-    passwordHash;
-    verifiedEmail;
-    profileViews;
+import { User } from './User';
+let Book = class Book {
+    bookId;
+    title;
+    publicationYear;
+    inPublicDomain;
     reviews;
-    books;
+    users;
 };
 __decorate([
     PrimaryGeneratedColumn('uuid'),
     __metadata("design:type", String)
-], User.prototype, "userId", void 0);
+], Book.prototype, "bookId", void 0);
 __decorate([
-    Column({ unique: true }),
+    Column(),
     __metadata("design:type", String)
-], User.prototype, "email", void 0);
+], Book.prototype, "title", void 0);
 __decorate([
-    Column({ unique: true }),
-    __metadata("design:type", String)
-], User.prototype, "passwordHash", void 0);
+    Column({ nullable: true }),
+    __metadata("design:type", Object)
+], Book.prototype, "publicationYear", void 0);
 __decorate([
     Column({ default: false }),
     __metadata("design:type", Boolean)
-], User.prototype, "verifiedEmail", void 0);
+], Book.prototype, "inPublicDomain", void 0);
 __decorate([
-    Column({ default: 0 }),
-    __metadata("design:type", Number)
-], User.prototype, "profileViews", void 0);
-__decorate([
-    OneToMany(() => Review, (review) => review.user, { cascade: ['insert', 'update'] }),
+    OneToMany(() => Review, (review) => review.book, { cascade: ['insert', 'update'] }),
     __metadata("design:type", Array)
-], User.prototype, "reviews", void 0);
+], Book.prototype, "reviews", void 0);
 __decorate([
-    ManyToMany(() => Book, (book) => book.users, { cascade: ['insert', 'update'] }),
-    JoinTable(),
+    ManyToMany(() => User, (user) => user.books, { cascade: ['insert', 'update'] }),
     __metadata("design:type", Array)
-], User.prototype, "books", void 0);
-User = __decorate([
+], Book.prototype, "users", void 0);
+Book = __decorate([
     Entity()
-], User);
-export { User };
-//# sourceMappingURL=User.js.map
+], Book);
+export { Book };
+//# sourceMappingURL=Book.js.map

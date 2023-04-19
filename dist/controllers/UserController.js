@@ -1,6 +1,10 @@
 import argon2 from 'argon2';
-import { addUser, getUserByEmail, getUserById, incrementProfileViews } from '../models/UserModel';
+import { addUser, getUserByEmail, getUserById, incrementProfileViews, allUserData, resetAllProfileViews, updateEmailAddress, } from '../models/UserModel';
 import { parseDatabaseError } from '../utils/db-utils';
+import { sendEmail } from '../services/emailService';
+async function getAllUserProfiles(req, res) {
+    res.json(await allUserData());
+}
 async function registerUser(req, res) {
     const { email, password } = req.body;
     // IMPORTANT: Hash the password
@@ -9,7 +13,9 @@ async function registerUser(req, res) {
         // IMPORTANT: Store the `passwordHash` and NOT the plaintext password
         const newUser = await addUser(email, passwordHash);
         console.log(newUser);
-        res.sendStatus(201);
+        await sendEmail(email, 'Welcome!', `Thank you for joining my application!`);
+        // res.sendStatus(201);
+        res.redirect('/login');
     }
     catch (err) {
         console.error(err);
@@ -20,36 +26,76 @@ async function registerUser(req, res) {
 async function logIn(req, res) {
     const { email, password } = req.body;
     const user = await getUserByEmail(email);
-    // Check if the user account exists for that email
     if (!user) {
-        res.sendStatus(404); // 404 Not Found (403 Forbidden would also make a lot of sense here)
+        // res.sendStatus(404); // 404 Not Found - email doesn't exist
+        res.redirect('/login');
         return;
     }
-    // The account exists so now we can check their password
     const { passwordHash } = user;
-    // If the password does not match
     if (!(await argon2.verify(passwordHash, password))) {
-        res.sendStatus(404); // 404 Not Found (403 Forbidden would also make a lot of sense here)
+        // res.sendStatus(404); // 404 Not Found - user with email/pass doesn't exist
+        res.redirect('/login');
         return;
     }
-    // The user has successfully logged in
-    // NOTES: We will update this once we implement session management
-    res.sendStatus(200); // 200 OK
+    // NOTES: Remember to clear the session before setting their authenticated session data
+    await req.session.clearSession();
+    // NOTES: Now we can add whatever data we want to the session
+    req.session.authenticatedUser = {
+        userId: user.userId,
+        email: user.email,
+    };
+    req.session.isLoggedIn = true;
+    // res.sendStatus(200);
+    // res.redirect("/welcome");
+    // res.render('profilePage', { email: user.email });
+    res.redirect(`/users/${user.userId}`);
 }
 async function getUserProfileData(req, res) {
-    const { userId } = req.params;
+    const { targetUserId } = req.params;
     // Get the user account
-    let user = await getUserById(userId);
+    let user = await getUserById(targetUserId);
     if (!user) {
         res.sendStatus(404); // 404 Not Found
         return;
     }
     // Now update their profile views
     user = await incrementProfileViews(user);
-    res.json(user); // Send back the user's data
+    // res.json(user);
+    res.render('profilePage', { email: user.email, profileViews: user.profileViews });
+}
+async function resetProfileViews(req, res) {
+    await resetAllProfileViews();
+    res.sendStatus(200);
 }
 async function updateUserEmail(req, res) {
-    // TODO: Implement me!
+    const { targetUserId } = req.params;
+    // NOTES: Access the data from `req.session`
+    const { isLoggedIn, authenticatedUser } = req.session;
+    // NOTES: We need to make sure that this client is logged in AND
+    //        they are try to modify their own user account
+    if (!isLoggedIn || authenticatedUser.userId !== targetUserId) {
+        res.sendStatus(403); // 403 Forbidden
+        return;
+    }
+    const { email } = req.body;
+    // Get the user account
+    const user = await getUserById(targetUserId);
+    if (!user) {
+        res.sendStatus(404); // 404 Not Found
+        return;
+    }
+    // Now update their email address
+    try {
+        await updateEmailAddress(targetUserId, email);
+    }
+    catch (err) {
+        // The email was taken so we need to send an error message
+        console.error(err);
+        const databaseErrorMessage = parseDatabaseError(err);
+        res.status(500).json(databaseErrorMessage);
+        return;
+    }
+    res.sendStatus(200);
 }
-export { registerUser, logIn, getUserProfileData, updateUserEmail };
+export { registerUser, logIn, getUserProfileData, getAllUserProfiles, resetProfileViews, updateUserEmail, };
 //# sourceMappingURL=UserController.js.map
